@@ -1,0 +1,24 @@
+\documentclass{article}
+
+\usepackage{lipsum}
+
+\input{preamble.tex}
+
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzexternalize[prefix=figures/cache/]
+
+\begin{document}
+
+\lipsum[1-2]
+
+\begin{figure}[t]
+    \centering
+    \input{figures/performance_profile.example.tex}
+    \caption{Some performance profile.}
+    \label{fig:some_performance_profile}
+\end{figure}
+
+\lipsum[2-3]
+
+\end{document}
