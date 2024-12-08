@@ -99,6 +99,37 @@ load_data <- function(name, file, aggregator = default_aggregator, timelimit = 3
         dplyr::arrange(Graph, K)
 }
 
+load_mtkahypar_data <- function(file, aggregator = default_aggregator, timelimit = 3600) {
+    df <- read.csv(file) %>% dplyr::rename(
+        Algorithm = algorithm,
+        Graph = graph,
+        K = k,
+        Seed = seed,
+        Epsilon = epsilon,
+        Threads = num_threads,
+        Imbalance = imbalance,
+        Time = totalPartitionTime,
+        Cut = km1,
+        Failed = failed,
+        Timeout = timeout
+    ) %>% dplyr::mutate(
+        Failed = ifelse(Failed == "no", FALSE, TRUE),
+        Timeout = ifelse(Timeout == "no", FALSE, TRUE)
+    )
+
+    cat("Loaded", nrow(df), "rows from", file, "for algorithm", df$Algorithm[[1]], "\n")
+
+    # Add columns that might be missing for some data
+    if (!("MaxRSS" %in% colnames(df))) {
+        df$MaxRSS <- -1 
+    }
+
+    df %>% 
+        aggregate_data(timelimit, aggregator) %>% 
+        dplyr::arrange(Graph, K)
+}
+
+
 # Feel free to change this to match your asthetic preferences ...
 create_theme <- function(aspect_ratio = 2 / (1 + sqrt(5)) / 1.25) theme(
     aspect.ratio = aspect_ratio,
