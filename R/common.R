@@ -9,7 +9,6 @@ library(gridExtra, warn.conflicts = FALSE)
 library(egg, warn.conflicts = FALSE)
 library(zoo, warn.conflicts = FALSE)
 library(psych, warn.conflicts = FALSE)
-library(cumstats, warn.conflicts = FALSE)
 
 TEX_MACROS <- "tex/preamble.tex"
 TEX_OUTPUT <- "tex/figures/"

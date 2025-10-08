@@ -140,7 +140,7 @@ create_running_time_boxplot <- function(
 
     annotation <- pp_data %>%
         dplyr::group_by(Algorithm) %>%
-        dplyr::summarize(GmeanTime = exp(mean(log(Time, na.rm = TRUE))), .groups = "drop")
+        dplyr::summarize(GmeanTime = exp(mean(log(Time), na.rm = FALSE)), .groups = "drop")
 
     p <- ggplot(pp_data, aes(x = Algorithm, y = Time)) +
         geom_jitter(aes(y = JitterTime, color = Algorithm, fill = Algorithm), size = jitter_size, alpha = 0.33, pch = 21, width = 0.3) +
