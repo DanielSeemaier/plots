@@ -24,7 +24,6 @@ create_running_time_boxplot <- function(
     label.tex.failed = TEX_LABEL_FAILED,
     colors = c(),
     levels = c(),
-    annotation = data.frame(),
     tex = FALSE,
     position.y = "left",
     tiny = FALSE
@@ -139,19 +138,20 @@ create_running_time_boxplot <- function(
     cat("They are included in the jitter points, but are set to NA for the boxplot, which is the reason for the warning\n")
     cat("----------\n")
 
+    annotation <- pp_data %>%
+        dplyr::group_by(Algorithm) %>%
+        dplyr::summarize(GmeanTime = exp(mean(log(Time, na.rm = TRUE))), .groups = "drop")
+
     p <- ggplot(pp_data, aes(x = Algorithm, y = Time)) +
         geom_jitter(aes(y = JitterTime, color = Algorithm, fill = Algorithm), size = jitter_size, alpha = 0.33, pch = 21, width = 0.3) +
         stat_boxplot(aes(color = Algorithm), geom = 'errorbar', width = 0.6) +
         geom_boxplot(aes(color = Algorithm), outlier.shape = NA, alpha = 0.5) +
         scale_y_continuous(trans = "log10", breaks = y_breaks, labels = y_labels, position = position.y) +
-        theme_bw()
+        theme_bw() + 
+        geom_text(aes(x = Algorithm, y = 0, label = sprintf("%.2f s", GmeanTime), vjust = -0.5), annotation, size = 2.5)
 
     if (show_error_ticks) {
         p <- p + geom_hline(yintercept = 10 ^ (max_time_log10 + tick.errors.space_below / 2))
-    }
-
-    if (nrow(annotation) > 0) {
-        p <- p + geom_text(aes(x = Algorithm, y = 0, label = sprintf("%.1f", Time), vjust = -0.5), annotation, size = 2.5)
     }
 
     # Set colors
