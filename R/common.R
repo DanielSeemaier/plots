@@ -90,6 +90,9 @@ load_data <- function(name, file, aggregator = default_aggregator, timelimit = 3
     if (!("Epsilon" %in% colnames(df))) {
         df$Epsilon <- 0.03
     }
+    if (!("Threads" %in% colnames(df))) {
+        df$Threads <- 1
+    }
     # ... to be extended ...
 
     df %>% 

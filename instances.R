@@ -3,9 +3,11 @@ if (TEX) {
     # For instance, you could decide to use \textsc{} to typeset the names of the algorithms.
     kaminpar_fm_name <- "\\textsc{KaMinPar-FM}"
     mtmetis_name <- "\\textsc{MtMetis}"
+    kaminpar_timings_name <- "\\textsc{KaMinPar}"
 } else {
     kaminpar_fm_name <- "KaMinPar-FM"
     mtmetis_name <- "MtMetis"
+    kaminpar_timings_name <- "KaMinPar"
 }
 
 results <- "data/"
