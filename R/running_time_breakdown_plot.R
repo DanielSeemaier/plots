@@ -3,7 +3,8 @@ create_running_time_breakdown_plot <- function(
     cols,
     column.graph = "Graph",
     column.total_time = "AvgTime",
-    column.remaining_time = "AvgTimeRemaining"
+    column.remaining_time = "AvgTimeRemaining",
+    normalize = TRUE
 ) {
     if (is.null(column.total_time)) {
         column.total_time <- ".AvgTime"
@@ -11,12 +12,14 @@ create_running_time_breakdown_plot <- function(
     }
 
     data <- data %>% dplyr::mutate(
-        !!column.remaining_time := (!!rlang::sym(column.total_time) - rowSums(dplyr::across(all_of(cols)))) / 
-            !!rlang::sym(column.total_time)
+        !!column.remaining_time := !!rlang::sym(column.total_time) - rowSums(dplyr::across(all_of(cols)))
     )
 
-    for (col in cols) {
-        data <- data %>% dplyr::mutate(!!col := !!rlang::sym(col) / !!rlang::sym(column.total_time))
+    if (normalize) {
+        for (col in cols) {
+            data <- data %>% dplyr::mutate(!!col := !!rlang::sym(col) / !!rlang::sym(column.total_time))
+        }
+        data <- data %>% dplyr::mutate(!!column.remaining_time := !!rlang::sym(column.remaining_time) / !!rlang::sym(column.total_time))
     }
 
     data <- data %>%
@@ -29,14 +32,9 @@ create_running_time_breakdown_plot <- function(
 
     ggplot2::ggplot(data, ggplot2::aes(x = Graph, y = Value, fill = Metric)) +
         ggplot2::geom_col(width = 0.9, position = "stack") +
-        #ggplot2::scale_y_continuous(
-            #expand = c(0, 0),
-            #breaks = seq(0, 1, by = 0.1)
-            #labels = c("0.0", "", "0.2", "", "0.4", "", "0.6", "", "0.8", "", "1.0")
-        #) +
         ggplot2::labs(
             x = "Graph",
-            y = "Time Fraction",
+            y = ifelse(normalize, "Time Fraction", "Time [s]"),
             fill = NULL
         ) +
         ggplot2::guides(fill = ggplot2::guide_legend(nrow = 2, byrow = TRUE, reverse = TRUE)) +

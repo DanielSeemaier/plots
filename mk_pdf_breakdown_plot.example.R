@@ -19,16 +19,20 @@ kaminpar_timings <- load_data(
     file = "data/KaMinPar-Timings.csv", 
     aggregator = aggreate_running_times
 )
+kaminpar_k16 <- kaminpar_timings %>% dplyr::filter(K == 16)
 
-#print(colnames(kaminpar_timings))
-#print(kaminpar_timings)
-#quit()
-
-example_breakdown_plot <- create_running_time_breakdown_plot(
-    data = kaminpar_timings,
+example_normalized_breakdown_plot <- create_running_time_breakdown_plot(
+    data = kaminpar_k16,
     cols = c("AvgCoarseningTime", "AvgInitialPartitioningTime", "AvgUncoarseningTime", "AvgRefinementTime")
 )
 
+example_absolute_breakdown_plot <- create_running_time_breakdown_plot(
+    data = kaminpar_k16,
+    cols = c("AvgCoarseningTime", "AvgInitialPartitioningTime", "AvgUncoarseningTime", "AvgRefinementTime"),
+    normalize = FALSE
+)
+
 open_dev("breakdown", tex = TEX)
-print(example_breakdown_plot)
+print(example_normalized_breakdown_plot)
+print(example_absolute_breakdown_plot)
 dev_off()
