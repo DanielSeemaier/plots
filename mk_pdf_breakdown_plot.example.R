@@ -6,13 +6,13 @@ source("R/running_time_breakdown_plot.R")
 
 aggreate_running_times <- function(df) {
     df %>% default_aggregator() %>% dplyr::mutate(
+        # Average each timer over multiple seeds
         AvgCoarseningTime = mean(df$TimeCoarsening),
         AvgInitialPartitioningTime = mean(df$TimeInitialPartitioning),
         AvgUncoarseningTime = mean(df$TimeUncoarsening),
         AvgRefinementTime = mean(df$TimeRefinement)
     )
 }
-
 
 kaminpar_timings <- load_data(
     name = "KaMinPar", 
