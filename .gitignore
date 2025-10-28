@@ -1,4 +1,5 @@
 .tikzdevicecache.db
 .r-libs/
 pdf/
-tikz/
+tex/figures/*
+!tex/figures/cache/.keepdir
