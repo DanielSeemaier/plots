@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[a4paper]{scrartcl}
 
 \usepackage{lipsum}
 
@@ -10,13 +10,14 @@
 
 \begin{document}
 
-\lipsum[1-2]
-
 \begin{figure}[t]
     \centering
     \input{figures/examples.tex}
-    \caption{Some performance profile.}
-    \label{fig:some_performance_profile}
+    \input{figures/examples_legend.tex}
+    \caption{Some plots.}
+    \label{fig:some_plots}
 \end{figure}
+
+As can be seen in Figure~\ref{fig:some_plots}, \lipsum[1-2]
 
 \end{document}

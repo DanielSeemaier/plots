@@ -25,14 +25,26 @@ example_running_time_box_plot <- create_running_time_box_plot(
         kaminpar_fm,
         mtmetis,
         colors = colors,
-        tex = TRUE
+        tex = TRUE,
+        annotate = "none"
     ) +
     ggplot2::theme_bw() +
     create_theme() +
     ggplot2::ylab("Running Time (s)") +
-    ggplot2::theme(legend.position = "bottom")
+    ggplot2::theme(legend.position = "none")
+
+legend_plot <- ggpubr::get_legend(example_performance_plot, position = "bottom")
+example_performance_plot <- example_performance_plot +
+    ggplot2::theme(legend.position = "none")
 
 open_tex("examples")
-print(example_performance_plot)
-print(example_running_time_box_plot)
+egg::ggarrange(
+    example_performance_plot,
+    example_running_time_box_plot,
+    nrow = 1
+)
+dev_off()
+
+open_tex("examples_legend")
+print(ggpubr::as_ggplot(legend_plot))
 dev_off()

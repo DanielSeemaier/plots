@@ -25,7 +25,8 @@ create_running_time_box_plot <- function(
     tex.label.failed = TEX_LABEL_FAILED,
     colors = c(),
     levels = c(),
-    position.y = "left"
+    position.y = "left",
+    annotate = "extensive" # extensive, minimal, none
 ) {
     all_dfs <- list(...)
     if (length(all_dfs) == 0) {
@@ -200,8 +201,10 @@ create_running_time_box_plot <- function(
             breaks = y_breaks, 
             labels = y_labels, 
             position = position.y
-        ) +
-        ggplot2::geom_text(
+        )
+
+    if (annotate == "extensive") {
+        p <- p + ggplot2::geom_text(
             ggplot2::aes(
                 x = Algorithm, 
                 y = min(data$JitterTime),
@@ -217,6 +220,19 @@ create_running_time_box_plot <- function(
             annotation, 
             size = 2.5
         )
+    } else if (annotate == "minimal") {
+        p <- p + ggplot2::geom_text(
+            ggplot2::aes(
+                x = Algorithm, 
+                y = min(data$JitterTime),
+                label = sprintf("%.2fs", GmeanCommon),
+                vjust = 1.5
+            ), 
+            annotation, 
+            size = 2.5
+        )
+    }
+
 
     if (show_error_ticks) {
         p <- p + ggplot2::geom_hline(yintercept = 10 ^ (max_time_log10 + tick.errors.space_below / 2))
