@@ -4,8 +4,8 @@ docker-build:
 install:
 	docker compose run --rm r ./install.R
 
-pdf:
+example-pdf:
 	docker compose run --rm r ./example_pdf.R
 
-tex:
+example-tex:
 	docker compose run --rm r ./example_tex.R

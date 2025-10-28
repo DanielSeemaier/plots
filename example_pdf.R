@@ -20,6 +20,17 @@ example_performance_plot <- create_performance_profile_plot(
     ggplot2::ylab("Fraction of Instances") +
     ggplot2::theme(legend.position = "bottom")
 
+example_running_time_box_plto <- create_running_time_box_plot(
+        kaminpar_fm,
+        mtmetis,
+        colors = colors
+    ) +
+    ggplot2::theme_bw() +
+    create_theme() +
+    ggplot2::ylab("Running Time (s)") +
+    ggplot2::theme(legend.position = "bottom")
+
 open_dev("examples", tex = TEX)
 print(example_performance_plot)
+print(example_running_time_box_plto)
 dev_off()

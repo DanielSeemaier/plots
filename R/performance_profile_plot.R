@@ -34,6 +34,7 @@ performance_profile_segments_nolog <- list(
     default_performance_profile_segment_2
 )
 
+# Magic constants -- do not change
 PP_RATIO_FEASIBLE <- 100000
 PP_RATIO_IMBALANCED <- 1000000
 PP_RATIO_TIMEOUT <- 2000000
@@ -119,15 +120,14 @@ create_performance_profile_plot <- function(
     pdf.label.failed = PDF_LABEL_FAILED,
     colors = c(),
     levels = c(),
-    axis.y.sparse_labels = TRUE) {
-
+    axis.y.sparse_labels = TRUE
+) {
     all_dfs <- list(...)
 
     if (length(all_dfs) <= 1) {
         cli::cli_abort("Need at least two data frames for plotting a performance profile.")
     }
 
-    # Run some basic sanity checks against the data frames
     for (i in 1:length(all_dfs)) {
         # Sort the data; replace 0 by 1 to ensure that zero-cuts do not crash our code
         df <- all_dfs[[i]] %>%
@@ -135,41 +135,52 @@ create_performance_profile_plot <- function(
             dplyr::mutate(!!column.objective := ifelse(.data[[column.objective]] == 0, 1, .data[[column.objective]]))
         all_dfs[[i]] <- df
 
+        # Sanity checks: crash early with helpful error messages
         if (!(column.algorithm %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.algorithm}} missing from data frame no. {.val {i}}.")
+            quit()
         }
 
         algorithms <- df %>% dplyr::pull(rlang::sym(column.algorithm))
         algorithm <- algorithms[1]
         if (!all(algorithms == algorithm)) {
             cli::cli_abort("Rows for multiple algorithms in the same data frame no. {.val {i}}: {.val {unique(algorithms)}}")
+            quit()
         }
 
         if (!(column.objective %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.objective}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
+            quit()
         }
         if (!(column.timeout %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.timeout}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
+            quit()
         }
         if (!(column.imbalanced %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.imbalanced}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
+            quit()
         }
         if (!column.failed %in% colnames(df)) {
             cli::cli_abort("Column {.field {column.failed}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
+            quit()
         }
 
         if (NA %in% df[[column.objective]]) {
             cli::cli_abort("Column {.field {column.objective}} of data frame no. {.val {i}} (algorithm {.val {algorithm}}) contains {.val NA} values.")
+            quit()
         }
         if (-Inf %in% df[[column.objective]]) {
             cli::cli_abort("Column {.field {column.objective}} of data frame no. {.val {i}} (algorithm {.val {algorithm}}) contains {.val -Inf} values.")
+            quit()
         }
 
         if (nrow(df[, primary_key]) != nrow(all_dfs[[1]][, primary_key])) {
             cli::cli_abort("Number of rows for the primary keys in data frame no. {.val {i}} (algorithm {.val {algorithm}}) does not match the number of rows for the primary keys in the first data frame.")
+            quit()
         }
         if (!all.equal(df[, primary_key], all_dfs[[1]][, primary_key])) {
             cli::cli_abort("Primary keys of data frame no. {.val {i}} (algorithm {.val {algorithm}}) does not match for all rows with the primary keys of the first data frame.")
+            quit()
         }
     }
 
