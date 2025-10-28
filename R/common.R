@@ -126,7 +126,6 @@ create_theme <- \(aspect_ratio = 2 / (1 + sqrt(5)) / 1.25) theme(
     legend.title = element_text(hjust = 0.5),
     legend.box.spacing = unit(0.1, "cm"),
     legend.text = element_text(size = 8, color = "black"), 
-    plot.title = element_text(size = 10, hjust = 0.5, color = "black"),
     strip.background = element_blank(),
     strip.text = element_blank(),
     panel.grid.major = element_line(linetype = "11", linewidth = 0.5, color = "grey"),

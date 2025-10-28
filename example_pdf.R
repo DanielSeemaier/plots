@@ -16,6 +16,7 @@ example_performance_plot <- create_performance_profile_plot(
         # Remove the next line if you do not want to use custom colors
         colors = colors
     ) +
+    ggplot2::labs(title = "Performance Profile") +
     ggplot2::theme_bw() +
     create_theme() +
     ggplot2::xlab("Ratio") +
@@ -27,6 +28,10 @@ example_running_time_box_plot <- create_running_time_box_plot(
         mtmetis,
         colors = colors
     ) +
+    ggplot2::labs(
+        title = "Per-Instance Running Times",
+        subtitle = "With geometric mean running time per algorithm"
+    ) +
     ggplot2::theme_bw() +
     create_theme() +
     ggplot2::ylab("Running Time (s)") +
@@ -37,6 +42,10 @@ example_slowdown_plot <- create_slowdown_plot(
         baseline = kaminpar_fm,
         colors = colors
     ) +
+    ggplot2::labs(
+        title = "Running Time Relative to Baseline",
+        subtitle = "< 1 is faster"
+    ) +
     ggplot2::theme_bw() +
     create_theme() +
     ggplot2::theme(legend.position = "bottom")
@@ -45,6 +54,10 @@ example_speedup_plot <- create_speedup_plot(
         mtmetis,
         baseline = kaminpar_fm,
         colors = colors
+    ) +
+    ggplot2::labs(
+        title = "Running Time Relative to Baseline",
+        subtitle = "> 1 is faster"
     ) +
     ggplot2::theme_bw() +
     create_theme() +
