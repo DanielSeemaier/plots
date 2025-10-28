@@ -6,6 +6,7 @@ install:
 
 example-pdf:
 	docker compose run --rm r ./example_pdf.R
+	docker compose run --rm r ./example_breakdown_plot.R
 
 example-tex:
 	docker compose run --rm r ./example_tex.R

@@ -4,6 +4,8 @@ TEX <- FALSE
 source("R/common.R")
 source("R/performance_profile_plot.R")
 source("R/running_time_box_plot.R")
+source("R/slowdown_plot.R")
+source("R/speedup_plot.R")
 
 source("instances.R")
 
@@ -30,7 +32,27 @@ example_running_time_box_plot <- create_running_time_box_plot(
     ggplot2::ylab("Running Time (s)") +
     ggplot2::theme(legend.position = "bottom")
 
+example_slowdown_plot <- create_slowdown_plot(
+        mtmetis,
+        baseline = kaminpar_fm,
+        colors = colors
+    ) +
+    ggplot2::theme_bw() +
+    create_theme() +
+    ggplot2::theme(legend.position = "bottom")
+
+example_speedup_plot <- create_speedup_plot(
+        mtmetis,
+        baseline = kaminpar_fm,
+        colors = colors
+    ) +
+    ggplot2::theme_bw() +
+    create_theme() +
+    ggplot2::theme(legend.position = "bottom")
+
 open_pdf("examples")
 print(example_performance_plot)
 print(example_running_time_box_plot)
+print(example_slowdown_plot)
+print(example_speedup_plot)
 dev_off()
