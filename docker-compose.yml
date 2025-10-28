@@ -1,0 +1,19 @@
+services:
+  r:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /work
+    volumes:
+      - ./:/work:ro
+      - ./data:/data:ro
+      - ./tex:/tex:ro
+      - ./.cache:/cache
+      - ./pdf:/pdf
+      - ./tikz:/tikz
+      - ./.r-libs:/usr/local/lib/R/site-library
+    environment:
+      - TZ=Europe/Berlin
+    init: true
+    stdin_open: true
+    tty: true

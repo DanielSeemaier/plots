@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-create_slowdown_plot <- function(
+create_speedup_plot <- function(
     ...,
     baseline,
     colors,
@@ -9,12 +9,13 @@ create_slowdown_plot <- function(
     column.timeout = "Timeout",
     column.algorithm = "Algorithm",
     column.failed = "Failed",
-    levels = c()) {
+    levels = c(),
+    x_step = 100) {
     #
     all_dfs <- list(...)
 
     if (length(all_dfs) == 0) {
-        cli::cli_abort("Need at least one data frames for plotting a slowdown profile.")
+        cli::cli_abort("Need at least one data frames for plotting a speedup profile.")
         quit()
     }
 
@@ -56,7 +57,7 @@ create_slowdown_plot <- function(
                 Time = rlang::sym(column.time),
                 Timeout = rlang::sym(column.timeout)
             ) %>%
-            dplyr::mutate(TimeRatio = Time / baseline$Time) %>%
+            dplyr::mutate(TimeRatio = baseline$Time / Time) %>%
             dplyr::arrange(TimeRatio) %>%
             dplyr::mutate(Ith = dplyr::row_number()) %>%
             dplyr::filter(!is.na(TimeRatio))
@@ -65,7 +66,7 @@ create_slowdown_plot <- function(
             fail_markers <<- fail_markers %>% dplyr::bind_rows(data.frame(
                 Algorithm = dplyr::first(df$Algorithm),
                 Ith = max(df$Ith),
-                TimeRatio = max(df$TimeRatio)
+                TimeRatio = min(df$TimeRatio)
             ))
         }
 
@@ -75,7 +76,7 @@ create_slowdown_plot <- function(
     plot <- ggplot2::ggplot(data, ggplot2::aes(x = Ith, y = TimeRatio, color = Algorithm)) +
         ggplot2::geom_line(linewidth = 1.5) +
         ggplot2::xlab("Number of Instances") +
-        ggplot2::ylab("Relative Slowdown") +
+        ggplot2::ylab("Relative Speedup") +
         ggplot2::geom_hline(
             linewidth = 1.5,
             yintercept = 1,
@@ -83,7 +84,7 @@ create_slowdown_plot <- function(
             color = baseline_color
         ) +
         ggplot2::scale_x_continuous(
-            breaks = c(seq(0, nrow(baseline), by = 100))
+            breaks = c(seq(0, nrow(baseline), by = x_step))
         ) +
         ggplot2::scale_color_manual(
             name = "Algorithm",

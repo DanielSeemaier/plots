@@ -1,19 +1,18 @@
+#!/usr/bin/env Rscript
+
 create_dummy_plot <- function(..., colors = c(), levels = c()) {
-    datasets <- list(...)
-    data <- data.frame()
-    for (dataset in datasets) {
-        dataset <- dataset %>% dplyr::mutate(Ith = 1:nrow(dataset))
-        data <- rbind(data, dataset)
+    data <- do.call(rbind, lapply(list(...), \(df) df["Algorithm"]))
+    if (length(levels) > 0) {
+        data$Algorithm <- factor(data$Algorithm, levels = levels)
     }
 
-    data$Algorithm <- factor(data$Algorithm, levels = levels)
+    plot <- ggplot2::ggplot(data, ggplot2::aes(x = 0, y = 1, color = Algorithm)) +
+        ggplot2::geom_line(linewidth = 1.0) +
+        ggplot2::theme(legend.position = "bottom")
 
-    p <- ggplot(data, aes(x = Ith, y = AvgTime, color = Algorithm)) + 
-        geom_line(linewidth = 1.0)
     if (length(colors) > 0) {
-        p <- p + scale_color_manual(name = "Algorithm", values = colors)
+        plot <- plot + ggplot2::scale_color_manual(name = "Algorithm", values = colors)
     }
 
-    return (p)
+    return(plot)
 }
-

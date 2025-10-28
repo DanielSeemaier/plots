@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
-show_timeouts <- function(df, option) option == "always" || (option == "auto" && any(df$Timeout))
-show_infeasibles <- function(df, option) option == "always" || (option == "auto" && any(df$Infeasible)) 
-show_fails <- function(df, option) option == "always" || (option == "auto" && any(df$Failed))
+show_timeouts <- \(df, option) option == "always" || (option == "auto" && any(df$Timeout))
+show_infeasibles <- \(df, option) option == "always" || (option == "auto" && any(df$Infeasible)) 
+show_fails <- \(df, option) option == "always" || (option == "auto" && any(df$Failed))
 
 create_running_time_boxplot <- function(
     ...,

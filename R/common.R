@@ -1,41 +1,48 @@
 options(show.error.locations = TRUE)
 options(error = traceback)
+options(tidyverse.quiet = TRUE)
 
 library(tidyverse, warn.conflicts = FALSE)
-
 library(RColorBrewer, warn.conflicts = FALSE)
 library(tikzDevice, warn.conflicts = FALSE)
 library(gridExtra, warn.conflicts = FALSE)
 library(egg, warn.conflicts = FALSE)
 library(zoo, warn.conflicts = FALSE)
 library(psych, warn.conflicts = FALSE)
+library(cli, warn.conflicts = FALSE)
 
-TEX_MACROS <- "tex/preamble.tex"
-TEX_OUTPUT <- "tex/figures/"
-PDF_OUTPUT <- "pdf/"
+TEX_MACROS <- "/tex/preamble.tex"
+TEX_OUTPUT <- "/tikz/"
+PDF_OUTPUT <- "/pdf/"
 
-PDF_LABEL_TIMEOUT <- "OOT"
-PDF_LABEL_INFEASIBLE <- "INF"
-PDF_LABEL_FAILED <- "FAIL"
+PDF_LABEL_TIMEOUT <- "T"
+PDF_LABEL_IMBALANCED <- "I"
+PDF_LABEL_FAILED <- "F"
 
 # Define din TEX_MACROS
-TEX_LABEL_TIMEOUT <- "\\symbTimeout"
-TEX_LABEL_INFEASIBLE <- "\\symbInfeasible"
-TEX_LABEL_FAILED <- "\\symbFailed"
+TEX_LABEL_TIMEOUT <- "\\SymbTimeout"
+TEX_LABEL_IMBALANCED <- "\\SymbImbalanced"
+TEX_LABEL_FAILED <- "\\SymbFailed"
 
-default_aggregator <- function(df) data.frame(
+default_aggregator <- \(df) data.frame(
     # ... add custom columns that you want to aggregate here ...
-    MinCut = min(df$Cut, na.rm = TRUE),
-    AvgCut = mean(df$Cut, na.rm = TRUE),
-    MinTime = min(df$Time, na.rm = TRUE),
-    AvgTime = mean(df$Time, na.rm = TRUE),
-    MinImbalance = min(df$Imbalance, na.rm = TRUE),
-    AvgMaxRSS = mean(df$MaxRSS, na.rm = TRUE),
-    Timeout = any(as.logical(df$Timeout)) & all(as.logical(df$Timeout) | as.logical(df$Failed)),
-    Failed = all(as.logical(df$Failed))
+    MinRealCut = ifelse(all(is.na(df$RealCut)), NA, min(df$RealCut, na.rm = TRUE)),
+    AvgRealCut = ifelse(all(is.na(df$RealCut)), NA, mean(df$RealCut, na.rm = TRUE)),
+    MaxRealCut = ifelse(all(is.na(df$RealCut)), NA, max(df$RealCut, na.rm = TRUE)),
+    MinCut = ifelse(all(is.na(df$Cut)), NA, min(df$Cut, na.rm = TRUE)),
+    AvgCut = ifelse(all(is.na(df$Cut)), NA, mean(df$Cut, na.rm = TRUE)),
+    MaxCut = ifelse(all(is.na(df$Cut)), NA, max(df$Cut, na.rm = TRUE)),
+    MinImbalance = ifelse(all(is.na(df$Imbalance)), NA, min(df$Imbalance, na.rm = TRUE)),
+    AvgImbalance = ifelse(all(is.na(df$Imbalance)), NA, mean(df$Imbalance, na.rm = TRUE)),
+    MaxImbalance = ifelse(all(is.na(df$Imbalance)), NA, max(df$Imbalance, na.rm = TRUE)),
+    MinTime = ifelse(all(is.na(df$Time)), NA, min(df$Time, na.rm = TRUE)),
+    AvgTime = ifelse(all(is.na(df$Time)), NA, mean(df$Time, na.rm = TRUE)),
+    MaxTime = ifelse(all(is.na(df$Time)), NA, max(df$Time, na.rm = TRUE)),
+    Timeout = all(df$Timeout),
+    Failed = all(df$Failed)
 )
 
-aggregate_data <- function(df, timelimit, aggregator) df %>% 
+aggregate_data <- \(df, timelimit, aggregator) df %>% 
     ##############################################################
     # Step 1: Pre-aggregation -- Invalidate individual runs that 
     # crashed, timed out or violate the balance constraint
@@ -67,42 +74,32 @@ aggregate_data <- function(df, timelimit, aggregator) df %>%
     dplyr::mutate(AvgTime = ifelse(is.na(AvgTime), Inf, AvgTime)) %>%
     dplyr::mutate(MinTime = ifelse(is.na(MinTime), Inf, MinTime)) %>%
     # If all repetitions of a run failed to fulfill the balance constraint, mark it as Infeasible
-    dplyr::mutate(Infeasible = !Failed & !Timeout & MinImbalance > 0.03 + .Machine$double.eps) %>%
+    dplyr::mutate(Imbalanced = !Failed & !Timeout & MinImbalance > 0.03 + .Machine$double.eps) %>%
     # ... otherwise, mark it as feasible (the aggregated cut / time columns will exclude the infeasible repetitions)
-    dplyr::mutate(Feasible = !Failed & !Timeout & !Infeasible) %>%
+    dplyr::mutate(Feasible = !Failed & !Timeout & !Imbalanced) %>%
     # If all repetitions crashed, ran out of time or produced an imbalanced cut, mark it as invalid
-    dplyr::mutate(Invalid = Failed | Timeout | Infeasible)
+    dplyr::mutate(Invalid = Failed | Timeout | Imbalanced)
 
-load_data <- function(name, file, aggregator = default_aggregator, timelimit = 3600) {
-    df <- read.csv(file)
-    cat("Loaded", nrow(df), "rows from", file, "for algorithm", name, "\n")
+create_optional_columns <- \(df) df %>%
+    { if (!"Timeout" %in% colnames(.)) dplyr::mutate(., Timeout = FALSE) else . } %>%
+    { if (!"Failed" %in% colnames(.)) dplyr::mutate(., Failed = FALSE) else . } %>%
+    { if (!"MaxRSS" %in% colnames(.)) dplyr::mutate(., MaxRSS = -1) else . } %>%
+    { if (!"Epsilon" %in% colnames(.)) dplyr::mutate(., Epsilon = 0.03) else . } %>%
+    { if (!"Threads" %in% colnames(.)) dplyr::mutate(., Threads = 1) else . } %>%
+    { if (!"Seed" %in% colnames(.)) dplyr::mutate(., Seed = -1) else . }
 
-    # Add columns that might be missing for some data
-    if (!("Timeout" %in% colnames(df))) {
-        df$Timeout <- FALSE 
-    }
-    if (!("Failed" %in% colnames(df))) {
-        df$Failed <- FALSE 
-    }
-    if (!("MaxRSS" %in% colnames(df))) {
-        df$MaxRSS <- -1 
-    }
-    if (!("Epsilon" %in% colnames(df))) {
-        df$Epsilon <- 0.03
-    }
-    if (!("Threads" %in% colnames(df))) {
-        df$Threads <- 1
-    }
-    # ... to be extended ...
+normalize_graph_names <- \(df) df %>%
+    dplyr::mutate(Graph = sub("\\.metis|\\.bgf|\\.mtx|\\.mtx.hgr|\\.hgr|\\.graph|\\.scotch", "", Graph))
 
-    df %>% 
-        dplyr::mutate(Algorithm = name) %>%
-        aggregate_data(timelimit, aggregator) %>% 
-        dplyr::arrange(Graph, K)
-}
+load_data <- \(name, file, aggregator = default_aggregator, timelimit = 3600) read.csv(file) %>%
+    normalize_graph_names() %>%
+    create_optional_columns() %>%
+    dplyr::mutate(Algorithm = name) %>%
+    aggregate_data(timelimit, aggregator) %>% 
+    dplyr::arrange(Graph, K)
 
-load_mtkahypar_data <- function(file, aggregator = default_aggregator, timelimit = 3600) {
-    df <- read.csv(file) %>% dplyr::rename(
+load_mtkahypar_data <- \(file, aggregator = default_aggregator, timelimit = 3600) read.csv(file) %>%
+    dplyr::rename(
         Algorithm = algorithm,
         Graph = graph,
         K = k,
@@ -117,23 +114,13 @@ load_mtkahypar_data <- function(file, aggregator = default_aggregator, timelimit
     ) %>% dplyr::mutate(
         Failed = ifelse(Failed == "no", FALSE, TRUE),
         Timeout = ifelse(Timeout == "no", FALSE, TRUE)
-    )
+    ) %>%
+    normalize_graph_names() %>%
+    create_optional_columns() %>%
+    aggregate_data(timelimit, aggregator) %>%
+    dplyr::arrange(Graph, K)
 
-    cat("Loaded", nrow(df), "rows from", file, "for algorithm", df$Algorithm[[1]], "\n")
-
-    # Add columns that might be missing for some data
-    if (!("MaxRSS" %in% colnames(df))) {
-        df$MaxRSS <- -1 
-    }
-
-    df %>% 
-        aggregate_data(timelimit, aggregator) %>% 
-        dplyr::arrange(Graph, K)
-}
-
-
-# Feel free to change this to match your asthetic preferences ...
-create_theme <- function(aspect_ratio = 2 / (1 + sqrt(5)) / 1.25) theme(
+create_theme <- \(aspect_ratio = 2 / (1 + sqrt(5)) / 1.25) theme(
     aspect.ratio = aspect_ratio,
     legend.background = element_blank(),
     legend.title = element_text(hjust = 0.5),
@@ -160,13 +147,13 @@ if (!exists("tikzDeviceLoaded")) {
 current_device_file <- ""
 current_device_file_is_tikz <- FALSE
 
-open_pdf <- function(file, width = 7) {
+open_pdf <- \(file, width = 7) {
     current_device_file <<- paste0(PDF_OUTPUT, "/", file, ".pdf") 
     current_device_file_is_tikz <<- FALSE
     pdf(current_device_file, width = width)
 }
 
-open_tikz <- function(file, width = 7) {
+open_tikz <- \(file, width = 7) {
     current_device_file <<- paste0(TEX_OUTPUT, "/", file, ".tex")
     current_device_file_is_tikz <<- TRUE
     if (width == 7) {
@@ -176,7 +163,7 @@ open_tikz <- function(file, width = 7) {
     }
 }
 
-open_dev <- function(file, width = 7, tex = FALSE) {
+open_dev <- \(file, width = 7, tex = FALSE) {
     if (tex) {
         open_tikz(file, width)
     } else {
@@ -184,7 +171,7 @@ open_dev <- function(file, width = 7, tex = FALSE) {
     }
 }
 
-dev_off <- function() {
+dev_off <- \() {
     dev.off()
     if (current_device_file_is_tikz) {
         lines <- readLines(con = current_device_file)

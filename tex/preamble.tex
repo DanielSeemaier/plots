@@ -1,9 +1,8 @@
 \usepackage{lmodern}
 
-\usepackage{amsbsy}
-\usepackage{wasysym}
+\usepackage{pifont}
+\newcommand{\SymbFailed}{\ding{55}}
 
-% These definitions will be used as labels in the R plots
-\newcommand{\symbTimeout}{\clock}
-\newcommand{\symbInfeasible}{\ensuremath{\times}}
-\newcommand{\symbFailed}{\ensuremath{\times}}
+\usepackage{fontawesome5}
+\newcommand{\SymbTimeout}{\faClock[regular]}
+\newcommand{\SymbImbalanced}{\faBalanceScaleLeft}
