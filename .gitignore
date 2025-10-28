@@ -1,2 +1,4 @@
 .tikzdevicecache.db
 .r-libs/
+pdf/
+tikz/
