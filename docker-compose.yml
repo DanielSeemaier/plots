@@ -5,12 +5,12 @@ services:
       dockerfile: Dockerfile
     working_dir: /work
     volumes:
-      - ./:/work:ro
       - ./data:/data:ro
       - ./tex:/tex:ro
+      - ./:/work
       - ./.cache:/cache
       - ./pdf:/pdf
-      - ./tikz:/tikz
+      - ./tex/figures:/tikz
       - ./.r-libs:/usr/local/lib/R/site-library
     environment:
       - TZ=Europe/Berlin

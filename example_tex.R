@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-TEX <- FALSE
+TEX <- TRUE
 
 source("R/common.R")
 source("R/performance_profile_plot.R")
@@ -12,7 +12,8 @@ example_performance_plot <- create_performance_profile_plot(
         mtmetis,
         # ... add more datasets here ...
         # Remove the next line if you do not want to use custom colors
-        colors = colors
+        colors = colors,
+        tex = TRUE
     ) +
     ggplot2::theme_bw() +
     create_theme() +
@@ -23,14 +24,15 @@ example_performance_plot <- create_performance_profile_plot(
 example_running_time_box_plot <- create_running_time_box_plot(
         kaminpar_fm,
         mtmetis,
-        colors = colors
+        colors = colors,
+        tex = TRUE
     ) +
     ggplot2::theme_bw() +
     create_theme() +
     ggplot2::ylab("Running Time (s)") +
     ggplot2::theme(legend.position = "bottom")
 
-open_pdf("examples")
+open_tex("examples")
 print(example_performance_plot)
 print(example_running_time_box_plot)
 dev_off()

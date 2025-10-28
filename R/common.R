@@ -147,27 +147,19 @@ if (!exists("tikzDeviceLoaded")) {
 current_device_file <- ""
 current_device_file_is_tikz <- FALSE
 
-open_pdf <- \(file, width = 7) {
+open_pdf <- \(file, width = 6) {
     current_device_file <<- paste0(PDF_OUTPUT, "/", file, ".pdf") 
     current_device_file_is_tikz <<- FALSE
     pdf(current_device_file, width = width)
 }
 
-open_tikz <- \(file, width = 7) {
+open_tex <- \(file, width = 6) {
     current_device_file <<- paste0(TEX_OUTPUT, "/", file, ".tex")
     current_device_file_is_tikz <<- TRUE
     if (width == 7) {
         tikz(current_device_file, pointsize = 12, timestamp = FALSE)
     } else {
         tikz(current_device_file, width = width, pointsize = 12, timestamp = FALSE)
-    }
-}
-
-open_dev <- \(file, width = 7, tex = FALSE) {
-    if (tex) {
-        open_tikz(file, width)
-    } else {
-        open_pdf(file, width)
     }
 }
 
