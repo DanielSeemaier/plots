@@ -63,12 +63,24 @@ create_performance_profile_data <- function(
     best <- do.call(pmin, lapply(all_dfs, \(df) df[[column.objective]]))
 
     data <- purrr::map_dfr(all_dfs, function(df) {
+        df_imbalanced <- if (!is.na(column.imbalanced) && column.imbalanced %in% names(df)) {
+            df[[column.imbalanced]] 
+        } else {
+            rep(FALSE, nrow(df))
+        }
+        df_timeout <- if (!is.na(column.timeout) && column.timeout %in% names(df)) {
+            df[[column.timeout]] 
+        } else {
+            rep(FALSE, nrow(df))
+        }
+        df_failed <- df[[column.failed]]
+
         df <- df %>%
             dplyr::mutate(Ratio = df[[column.objective]] / best) %>%
             dplyr::mutate(Ratio = case_when(
-                df[[column.imbalanced]] ~ PP_RATIO_IMBALANCED,
-                df[[column.timeout]] ~ PP_RATIO_TIMEOUT,
-                df[[column.failed]] & !df[[column.timeout]] ~ PP_RATIO_FAILED,
+                df_imbalanced ~ PP_RATIO_IMBALANCED,
+                df_timeout ~ PP_RATIO_TIMEOUT,
+                df_failed & !df_timeout ~ PP_RATIO_FAILED,
                 TRUE ~ Ratio
             )) %>%
             dplyr::group_by(Ratio) %>%
@@ -152,11 +164,11 @@ create_performance_profile_plot <- function(
             cli::cli_abort("Column {.field {column.objective}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
             quit()
         }
-        if (!(column.timeout %in% colnames(df))) {
+        if (!is.na(column.timeout) & !(column.timeout %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.timeout}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
             quit()
         }
-        if (!(column.imbalanced %in% colnames(df))) {
+        if (!is.na(column.imbalanced) & !(column.imbalanced %in% colnames(df))) {
             cli::cli_abort("Column {.field {column.imbalanced}} missing from data frame no. {.val {i}} (algorithm {.val {algorithm}}).")
             quit()
         }
@@ -188,12 +200,24 @@ create_performance_profile_plot <- function(
     best <- do.call(pmin, lapply(all_dfs, \(df) df[[column.objective]]))
 
     data <- purrr::map_dfr(all_dfs, function(df) {
+        df_imbalanced <- if (!is.na(column.imbalanced) && column.imbalanced %in% names(df)) {
+            df[[column.imbalanced]] 
+        } else {
+            rep(FALSE, nrow(df))
+        }
+        df_timeout <- if (!is.na(column.timeout) && column.timeout %in% names(df)) {
+            df[[column.timeout]] 
+        } else {
+            rep(FALSE, nrow(df))
+        }
+        df_failed <- df[[column.failed]]
+
         df <- df %>%
             dplyr::mutate(Ratio = df[[column.objective]] / best) %>%
             dplyr::mutate(Ratio = case_when(
-                df[[column.imbalanced]] ~ PP_RATIO_IMBALANCED,
-                df[[column.timeout]] ~ PP_RATIO_TIMEOUT,
-                df[[column.failed]] & !df[[column.timeout]] ~ PP_RATIO_FAILED,
+                df_imbalanced ~ PP_RATIO_IMBALANCED,
+                df_timeout ~ PP_RATIO_TIMEOUT,
+                df_failed & !df_timeout ~ PP_RATIO_FAILED,
                 TRUE ~ Ratio
             )) %>%
             dplyr::group_by(Ratio) %>%

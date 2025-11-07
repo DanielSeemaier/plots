@@ -23,6 +23,21 @@ example_performance_plot <- create_performance_profile_plot(
     ggplot2::ylab("Fraction of Instances") +
     ggplot2::theme(legend.position = "bottom")
 
+example_performance_plot_noimb <- create_performance_profile_plot(
+        kaminpar_fm,
+        mtmetis,
+        # ... add more datasets here ...
+        # Remove the next line if you do not want to use custom colors
+        colors = colors,
+        column.imbalanced = NA
+    ) +
+    ggplot2::labs(title = "Performance Profile (ignore imbalances)") +
+    ggplot2::theme_bw() +
+    create_theme() +
+    ggplot2::xlab("Ratio") +
+    ggplot2::ylab("Fraction of Instances") +
+    ggplot2::theme(legend.position = "bottom")
+
 example_running_time_box_plot <- create_running_time_box_plot(
         kaminpar_fm,
         mtmetis,
@@ -65,6 +80,7 @@ example_speedup_plot <- create_speedup_plot(
 
 open_pdf("examples")
 print(example_performance_plot)
+print(example_performance_plot_noimb)
 print(example_running_time_box_plot)
 print(example_slowdown_plot)
 print(example_speedup_plot)
