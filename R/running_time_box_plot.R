@@ -11,6 +11,7 @@ create_running_time_box_plot <- function(
     column.imbalanced = "Imbalanced",
     column.failed = "Failed",
     primary_key = c("Graph", "K"),
+    exclude.imbalanced = FALSE,
     tick.timeout = "auto", # always, auto, never
     tick.imbalanced = "auto", # always, auto, never
     tick.failed = "auto", # always, auto, never
@@ -90,6 +91,7 @@ create_running_time_box_plot <- function(
         ) %>% 
         dplyr::mutate(
             PK = dplyr::row_number(),
+            Imbalanced = exclude.imbalanced & Imbalanced,
             JitterTime = Time
         )
     )
