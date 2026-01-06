@@ -29,6 +29,9 @@ example_performance_plot_noimb <- create_performance_profile_plot(
         # ... add more datasets here ...
         # Remove the next line if you do not want to use custom colors
         colors = colors,
+        # Use these arguments to treat imbalanced (and thus infeasible) 
+        # partitions like balanced ones:
+        column.objective = "AvgRealCut", # AvgCut is set to Inf for infeasible solutions
         column.imbalanced = NA
     ) +
     ggplot2::labs(title = "Performance Profile (ignore imbalances)") +

@@ -29,6 +29,9 @@ default_aggregator <- \(df) data.frame(
     MinCut = ifelse(all(is.na(df$Cut)), NA, min(df$Cut, na.rm = TRUE)),
     AvgCut = ifelse(all(is.na(df$Cut)), NA, mean(df$Cut, na.rm = TRUE)),
     MaxCut = ifelse(all(is.na(df$Cut)), NA, max(df$Cut, na.rm = TRUE)),
+    MinRealCut = ifelse(all(is.na(df$RealCut)), NA, min(df$RealCut, na.rm = TRUE)),
+    AvgRealCut = ifelse(all(is.na(df$RealCut)), NA, mean(df$RealCut, na.rm = TRUE)),
+    MaxRealCut = ifelse(all(is.na(df$RealCut)), NA, max(df$RealCut, na.rm = TRUE)),
     MinImbalance = ifelse(all(is.na(df$Imbalance)), NA, min(df$Imbalance, na.rm = TRUE)),
     AvgImbalance = ifelse(all(is.na(df$Imbalance)), NA, mean(df$Imbalance, na.rm = TRUE)),
     MaxImbalance = ifelse(all(is.na(df$Imbalance)), NA, max(df$Imbalance, na.rm = TRUE)),
@@ -44,13 +47,16 @@ aggregate_data <- \(df, timelimit, aggregator) df %>%
     # Step 1: Pre-aggregation -- Invalidate individual runs that 
     # crashed, timed out or violate the balance constraint
     ##############################################################
-    # Set the cut to NA if the run timed out or crashed
-    dplyr::mutate(Cut = ifelse(Timeout | Failed, NA, Cut)) %>%
     dplyr::mutate(Imbalance = ifelse(Timeout | Failed, NA, Imbalance)) %>%
     # Set the time to the timelimit if the run timed out
     dplyr::mutate(Time = ifelse(Timeout, timelimit, Time)) %>%
     # Set the time to NA if the run failed
     dplyr::mutate(Time = ifelse(Failed & !Timeout, NA, Time)) %>%
+    # Set the cut to NA if the run timed out, crashed, or the partition is imbalanced
+    # RealCut: sometimes, the cut is still interesting, so copy it to another column 
+    # before invalidating Cut
+    dplyr::mutate(RealCut = ifelse(Failed | Timeout, NA, Cut)) %>%
+    dplyr::mutate(Cut = ifelse(Failed | Timeout | (Imbalance > Epsilon + .Machine$double.eps), NA, Cut)) %>%
     ##############################################################
     # Step 2: Aggregation -- Use arithmetic means to aggregate 
     # multiple seeds of the same instance
@@ -66,10 +72,15 @@ aggregate_data <- \(df, timelimit, aggregator) df %>%
     # all repetitions of an instance failed
     ##############################################################
     # If all repetitions of a run failed, set the cut and time to Inf 
-    dplyr::mutate(AvgCut = ifelse(is.na(AvgCut), Inf, AvgCut)) %>%
     dplyr::mutate(MinCut = ifelse(is.na(MinCut), Inf, MinCut)) %>%
-    dplyr::mutate(AvgTime = ifelse(is.na(AvgTime), Inf, AvgTime)) %>%
+    dplyr::mutate(AvgCut = ifelse(is.na(AvgCut), Inf, AvgCut)) %>%
+    dplyr::mutate(MaxCut = ifelse(is.na(MaxCut), Inf, MaxCut)) %>%
+    dplyr::mutate(MinRealCut = ifelse(is.na(MinRealCut), Inf, MinRealCut)) %>%
+    dplyr::mutate(AvgRealCut = ifelse(is.na(AvgRealCut), Inf, AvgRealCut)) %>%
+    dplyr::mutate(MaxRealCut = ifelse(is.na(MaxRealCut), Inf, MaxRealCut)) %>%
     dplyr::mutate(MinTime = ifelse(is.na(MinTime), Inf, MinTime)) %>%
+    dplyr::mutate(AvgTime = ifelse(is.na(AvgTime), Inf, AvgTime)) %>%
+    dplyr::mutate(MaxTime = ifelse(is.na(MaxTime), Inf, MaxTime)) %>%
     # If all repetitions of a run failed to fulfill the balance constraint, mark it as Infeasible
     dplyr::mutate(Imbalanced = !Failed & !Timeout & MinImbalance > 0.03 + .Machine$double.eps) %>%
     # ... otherwise, mark it as feasible (the aggregated cut / time columns will exclude the infeasible repetitions)
