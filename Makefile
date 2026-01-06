@@ -10,3 +10,6 @@ example-pdf:
 
 example-tex:
 	docker compose run --rm r ./example_tex.R
+
+test:
+	docker compose run --rm r ./test.R
