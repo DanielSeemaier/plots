@@ -139,6 +139,12 @@ plot_catalog <- function() {
       "Speedup",
       "For one algorithm, uses the smallest available core count as baseline and plots geometric-mean speedup curves for larger core counts.",
       1, 1, FALSE, FALSE, "--plot", "speedup"
+    ),
+    plot_catalog_entry(
+      "imbalance",
+      "Imbalance",
+      "Shows observed imbalances above the requested epsilon by algorithm.",
+      1, NULL, FALSE, FALSE, "--plot", "imbalance"
     )
   )
 }
@@ -162,6 +168,7 @@ source_mkexp_plot_library <- function() {
   source_mkexp_file("R/running_time_box_plot.R")
   source_mkexp_file("R/running_time_by_core_box_plot.R")
   source_mkexp_file("R/relative_by_graph_grid_plot.R")
+  source_mkexp_file("R/imbalance_plot.R")
 }
 
 run_mkexp_plot <- function(args = character(0)) {
@@ -485,6 +492,28 @@ run_mkexp_plot <- function(args = character(0)) {
     })
   }
 
+  render_imbalance <- function() {
+    cli::cli_h2("Imbalance")
+    tryCatch({
+      imbalance <- do.call(
+        create_imbalance_plot,
+        c(
+          unname(dfs),
+          list(
+            colors = colors,
+            levels = algorithms,
+            annotate.counts = TRUE,
+            tex = tex
+          )
+        )
+      )
+      print(imbalance + default_theme)
+      plots_written <<- plots_written + 1L
+    }, error = function(e) {
+      cli::cli_alert_danger("Imbalance failed: {e$message}")
+    })
+  }
+
   for (plot_id in plot_ids) {
     if (plot_id == "performance-profile") {
       render_performance_profile()
@@ -498,6 +527,8 @@ run_mkexp_plot <- function(args = character(0)) {
       render_relative_time_graph_grid()
     } else if (plot_id == "speedup") {
       render_core_speedup()
+    } else if (plot_id == "imbalance") {
+      render_imbalance()
     } else {
       cli::cli_alert_danger("Unknown plot type: {.val {plot_id}}")
     }
