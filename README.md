@@ -1,32 +1,8 @@
 # Plotting scripts
 
-`mkexp.R` is the single mkexp2 entry point for this submodule:
-
-```sh
-./mkexp.R plot [--list] [--json]
-./mkexp.R plot [--plot <id>]... [--threads T|NxMxT] [--output plots.pdf] <source>...
-./mkexp.R stats [--results results] [--json]
-```
-
-Reusable plotting and stats code lives in `R/`. The old mkexp2 stats backend is
-now `R/stats.R`, centered on `create_stats_summary(..., results_dir = "results")`.
-
-Place standalone example `*.csv` files in `data/` and load them in
-`instances.R`. Result files should include at least `Graph`, `K`, `Cut`,
-`Imbalance`, and `Time`; optional columns include `Seed`, `Epsilon`, `Threads`,
-`Cores`, `Failed`, and `Timeout`. Run `make example-pdf` or `make example-tex`
-to generate example plots.
-
-All plot functions accept `tex = FALSE` by default. With `tex = FALSE`, labels
-are plain text such as `10^2`, `%`, and `(P)`. Pass `tex = TRUE` when rendering
-through TikZ/LaTeX and you want labels such as `$10^2$`, `\\%`, or symbolic
-timeout/imbalance/failure markers.
-
-## Plot Function Reference
-
 Most comparison plots take normalized matrix/result data frames through `...`.
-The normal entry point for turning raw mkexp2 CSVs into those data frames is
-`load_dataset()` from `R/common.R`.
+The normal entry point for turning raw CSVs into those data frames is `load_dataset()` 
+from `R/common.R`.
 
 ### `create_performance_profile_plot(...)`
 
